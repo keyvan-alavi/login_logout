@@ -1,5 +1,10 @@
+import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:myloginlogout/main.dart';
+import 'package:myloginlogout/widgets/colors.dart';
+import 'package:shared_preferences/shared_preferences.dart';
+
+import 'User.dart';
 
 class AfterLoginGoToThis extends StatefulWidget {
   const AfterLoginGoToThis({super.key});
@@ -9,49 +14,74 @@ class AfterLoginGoToThis extends StatefulWidget {
 }
 
 class _AfterLoginGoToThisState extends State<AfterLoginGoToThis> {
+  late SharedPreferences prefs;
+  User? user = null;
+
+  @override
+  void initState() {
+    super.initState();
+    UserInfo();
+  }
+
   @override
   Widget build(BuildContext context) {
-    return MaterialApp(
-      debugShowCheckedModeBanner: false,
-      home: Scaffold(
-        appBar: AppBar(),
-        body: Padding(
-          padding: const EdgeInsets.all(20.0),
-          child: Center(
-            child:Card(
-              margin: EdgeInsets.all(10.0),
-
-              color: const Color.fromRGBO(60, 180, 130, 1.0),
-              child:Column(
-                mainAxisSize: MainAxisSize.max,
-                mainAxisAlignment: MainAxisAlignment.center,
-                crossAxisAlignment: CrossAxisAlignment.center,
-                children: [
-                  const Text(
-                    "به برنامه خوش آمدید",
-                    style: TextStyle(fontSize: 30),
+    return Container(
+        decoration: PageColors(context),
+        child: Center(
+          child: Column(
+            children: [
+              Padding(
+                padding: const EdgeInsets.fromLTRB(0, 100, 0, 0),
+                child: SizedBox(
+                  height: 35,
+                  child: Text(
+                    "Username : ${user!.username}",
+                    textAlign: TextAlign.center,
+                    style: const TextStyle(
+                        color: Colors.white,
+                        fontSize: 18,
+                        fontWeight: FontWeight.bold),
                   ),
-                  const Text(
-                    'این یوزر اینترفیس به صورت آزمایشی جهت تمرین تهیه شده است',
-                    style: TextStyle(fontSize: 20), textAlign: TextAlign.center,
-                  ),
-                  const Text('Keyvan', style: TextStyle(fontSize: 30),),
-                  ElevatedButton(
-                      onPressed: () {
-                        Navigator.push(
-                          context,
-                          MaterialPageRoute(builder: (context) {
-                            return MyApp();
-                          }),
-                        );
-                      },
-                      child: Text('بازگشت به صفحه اول')),
-                ],
+                ),
               ),
-            )
+              SizedBox(
+                height: 35,
+                child: Text(
+                  "Email : ${user!.email}",
+                  textAlign: TextAlign.center,
+                  style: const TextStyle(
+                      color: Colors.white,
+                      fontSize: 18,
+                      fontWeight: FontWeight.bold),
+                ),
+              ),
+              IconButton(
+                  icon: Icon(
+                    Icons.logout,
+                    color: Colors.white,
+                  ),
+                  onPressed: logOutOfPg)
+            ],
           ),
         ),
-      ),
-    );
+      );
+  }
+
+  void UserInfo() async {
+    SharedPreferences prefs = await SharedPreferences.getInstance();
+    setState(() {
+      user = User.fromJson(jsonDecode(prefs.getString("userData")!));
+    });
+  }
+
+  void logOutOfPg() async {
+    SharedPreferences prefs = await SharedPreferences.getInstance();
+    prefs.remove('user');
+    prefs.remove('email');
+    prefs.remove('password');
+    // prefs.setString('username', username);
+    // prefs.setString('email', email);
+    Navigator.pushReplacement(
+        context, MaterialPageRoute(builder: (c) => MyApp()));
   }
 }

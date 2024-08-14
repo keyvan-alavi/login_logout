@@ -1,7 +1,8 @@
 import 'package:flutter/material.dart';
-import 'package:myloginlogout/AppButton.dart';
+import 'package:myloginlogout/widgets/widgets.dart';
 import 'package:myloginlogout/loginpage.dart';
 import 'package:myloginlogout/signuppage.dart';
+import 'package:myloginlogout/widgets/colors.dart';
 
 class Firstviewpage extends StatelessWidget {
   const Firstviewpage({super.key});
@@ -16,19 +17,7 @@ class Firstviewpage extends StatelessWidget {
 
   Widget AppUI(BuildContext context) {
     return Container(
-      decoration: const BoxDecoration(
-          gradient: LinearGradient(
-        colors: [
-          Color.fromRGBO(105, 100, 195, 1.0),
-          Color.fromRGBO(95, 92, 181, 1.0),
-          Color.fromRGBO(84, 86, 149, 1.0),
-          Color.fromRGBO(51, 70, 129, 1.0),
-          Color.fromRGBO(42, 53, 124, 1.0),
-          Color.fromRGBO(40, 51, 119, 1.0),
-        ],
-        begin: Alignment.topCenter,
-        end: Alignment.bottomCenter,
-      )),
+      decoration: PageColors(context),
       child: Column(
         children: [
           headerUi(context),

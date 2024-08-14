@@ -1,12 +1,33 @@
+import 'dart:convert';
+import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter/widgets.dart';
-import 'package:myloginlogout/AppButton.dart';
-import 'package:myloginlogout/after_login_go_to_this.dart';
+import 'package:myloginlogout/widgets/widgets.dart';
 import 'package:myloginlogout/loginpage.dart';
-import 'package:myloginlogout/textfields.dart';
+import 'package:myloginlogout/widgets/colors.dart';
+import 'package:myloginlogout/widgets/textfields.dart';
+import 'package:shared_preferences/shared_preferences.dart';
+import 'User.dart';
+import 'after_login_go_to_this.dart';
 
-class Signuppage extends StatelessWidget {
+class Signuppage extends StatefulWidget {
   const Signuppage({super.key});
+
+  @override
+  State<Signuppage> createState() => _SignuppageState();
+}
+
+class _SignuppageState extends State<Signuppage> {
+  TextEditingController usernameController = TextEditingController();
+  TextEditingController emailController = TextEditingController();
+  TextEditingController passwordController = TextEditingController();
+  TextEditingController repasswordController = TextEditingController();
+
+  late SharedPreferences prefs;
+
+  @override
+  void initState() {
+    super.initState();
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -22,19 +43,7 @@ class Signuppage extends StatelessWidget {
 
   Widget AppUI(BuildContext context) {
     return Container(
-      decoration: const BoxDecoration(
-          gradient: LinearGradient(
-        colors: [
-          Color.fromRGBO(105, 100, 195, 1.0),
-          Color.fromRGBO(95, 92, 181, 1.0),
-          Color.fromRGBO(84, 86, 149, 1.0),
-          Color.fromRGBO(51, 70, 129, 1.0),
-          Color.fromRGBO(42, 53, 124, 1.0),
-          Color.fromRGBO(40, 51, 119, 1.0),
-        ],
-        begin: Alignment.topCenter,
-        end: Alignment.bottomCenter,
-      )),
+      decoration: PageColors(context),
       child: Column(
         children: [
           headerUi(context),
@@ -48,68 +57,65 @@ class Signuppage extends StatelessWidget {
   Widget headerUi(BuildContext context) {
     return Container(
       width: MediaQuery.of(context).size.width,
-      height: MediaQuery.of(context).size.height * 0.32,
+      height: MediaQuery.of(context).size.height * 0.28,
     );
   }
 
   Widget mainUi(BuildContext context) {
     return Container(
       width: MediaQuery.of(context).size.width,
-      height: MediaQuery.of(context).size.height * 0.53,
-      child: const Column(
+      height: MediaQuery.of(context).size.height * 0.56,
+      child: Column(
         children: [
-          Text(
+          const Text(
             "خوش آمدید",
             style: TextStyle(
-                color: Colors.white, fontSize: 45,
+                color: Colors.white,
+                fontSize: 45,
                 fontFamily: 'samim',
-            fontWeight: FontWeight.bold),
+                fontWeight: FontWeight.bold),
           ),
-          Text(
+          const Text(
             'در صورتی که هنوز عضو نشدید، ثبت نام کنید',
             style: TextStyle(color: Colors.white70, fontSize: 18),
           ),
-          SizedBox(
-            height: 30,
+          Padding(
+            padding: const EdgeInsets.fromLTRB(0, 10, 0, 0),
+            child: TextFormFields(
+              suffixIcon: Icons.person,
+              hintText: 'نام کاربری (اجباری)',
+              controller: usernameController,
+            ),
           ),
-          TextFormFields(
-            suffixIcon: Icons.person,
-            hintText: 'نام کاربری',
-          ),
-          SizedBox(
-            height: 10,
-          ),
-          TextFormFields(
-            suffixIcon: Icons.mail,
-            hintText: 'ایمیل',
-          ),
-          SizedBox(
-            height: 10,
-          ),
-          TextFormFields(
-            suffixIcon: Icons.lock,
-            hintText: 'رمز عبور',
-            passwordcheck: true,
-          ),
-          SizedBox(
-            height: 10,
+          Padding(
+            padding: const EdgeInsets.fromLTRB(0, 8, 0, 8),
+            child: TextFormFields(
+              suffixIcon: Icons.mail,
+              hintText: 'ایمیل',
+              controller: emailController,
+            ),
           ),
           TextFormFields(
             suffixIcon: Icons.lock,
-            hintText: 'تکرار رمز عبور',
+            hintText: 'رمز عبور(اجباری)',
+            controller: passwordController,
             passwordcheck: true,
           ),
-          SizedBox(
-            height: 10,
+          Padding(
+            padding: const EdgeInsets.fromLTRB(0, 8, 0, 10),
+            child: TextFormFields(
+              suffixIcon: Icons.lock,
+              hintText: 'تکرار رمز عبور(اجباری)',
+              controller: repasswordController,
+              passwordcheck: true,
+            ),
           ),
-          Text(
-            "با عضویت در این برنامه قوانین ما",
-            style: TextStyle(color: Colors.white, fontSize: 16),
-          ),
-          Text(
+          const Text(
+            "با عضویت در این برنامه قوانین ما\n"
             "را پذیرفته اید",
             style: TextStyle(color: Colors.white, fontSize: 16),
-          )
+            textAlign: TextAlign.center,
+          ),
         ],
       ),
     );
@@ -118,18 +124,11 @@ class Signuppage extends StatelessWidget {
   Widget footerUi(BuildContext context) {
     return Container(
         width: MediaQuery.of(context).size.width,
-        height: MediaQuery.of(context).size.height * 0.15,
+        height: MediaQuery.of(context).size.height * 0.14,
         child: Column(
           children: [
             GradientButton(context, () {
-              Navigator.push(
-                context,
-                MaterialPageRoute(
-                  builder: (context) {
-                    return AfterLoginGoToThis();
-                  },
-                ),
-              );
+              saveData();
             }, "عضویت"),
             Row(
               mainAxisSize: MainAxisSize.max,
@@ -167,5 +166,60 @@ class Signuppage extends StatelessWidget {
             )
           ],
         ));
+  }
+
+  void saveData() async {
+    SharedPreferences prefs = await SharedPreferences.getInstance();
+    final User user = User(
+      userId: DateTime
+          .now()
+          .millisecondsSinceEpoch
+          .toString(),
+      username: usernameController.text,
+      email: emailController.text,
+      password: passwordController.text,
+      rePassword: repasswordController.text,
+    );
+
+    String jsonString = jsonEncode(user);
+    prefs.setString("userData", jsonString);
+    prefs.setBool("isLogin", true);
+    prefs.setBool('user', true);
+
+    if (passwordController.text != '' &&
+        usernameController.text != '' &&
+        passwordController.text == repasswordController.text) {
+      Navigator.pushReplacement(context,
+          MaterialPageRoute(
+              builder: (BuildContext context) => AfterLoginGoToThis()));
+    }
+    else {
+      if (usernameController.text == '' ||
+          passwordController.text == '' ||
+          repasswordController.text == '') {
+        showDialog(
+          context: context,
+          builder: (BuildContext context) {
+            return MyAlrtDialog(
+                context, 'خطای فیلد خالی', 'هیچ فیلد اجباری نباید خالی باشد');
+          },
+        );
+      } else if (usernameController.text == '') {
+        showDialog(
+          context: context,
+          builder: (BuildContext context) {
+            return MyAlrtDialog(
+                context, 'خطای نام کاربری', 'نام کاربری نباید خالی باشد');
+          },
+        );
+      } else if (passwordController.text != repasswordController.text) {
+        showDialog(
+          context: context,
+          builder: (BuildContext context) {
+            return MyAlrtDialog(context, 'خطای رمز', 'رمز ها باید برابر باشند');
+          },
+        );
+      }
+    }
   }
 }

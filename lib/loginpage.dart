@@ -1,12 +1,24 @@
+import 'dart:convert';
 import 'package:flutter/material.dart';
-import 'package:flutter/widgets.dart';
-import 'package:myloginlogout/AppButton.dart';
+import 'package:myloginlogout/widgets/widgets.dart';
 import 'package:myloginlogout/after_login_go_to_this.dart';
 import 'package:myloginlogout/signuppage.dart';
-import 'package:myloginlogout/textfields.dart';
+import 'package:myloginlogout/widgets/colors.dart';
+import 'package:myloginlogout/widgets/textfields.dart';
+import 'package:myloginlogout/User.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
-class Loginpage extends StatelessWidget {
+class Loginpage extends StatefulWidget {
   const Loginpage({super.key});
+
+  @override
+  State<Loginpage> createState() => _LoginpageState();
+}
+
+class _LoginpageState extends State<Loginpage> {
+  TextEditingController usernameController = TextEditingController();
+  TextEditingController passwordController = TextEditingController();
+  TextEditingController repasswordController = TextEditingController();
 
   @override
   Widget build(BuildContext context) {
@@ -22,19 +34,7 @@ class Loginpage extends StatelessWidget {
 
   Widget AppUI(BuildContext context) {
     return Container(
-      decoration: const BoxDecoration(
-          gradient: LinearGradient(
-        colors: [
-          Color.fromRGBO(105, 100, 195, 1.0),
-          Color.fromRGBO(95, 92, 181, 1.0),
-          Color.fromRGBO(84, 86, 149, 1.0),
-          Color.fromRGBO(51, 70, 129, 1.0),
-          Color.fromRGBO(42, 53, 124, 1.0),
-          Color.fromRGBO(40, 51, 119, 1.0),
-        ],
-        begin: Alignment.topCenter,
-        end: Alignment.bottomCenter,
-      )),
+      decoration: PageColors(context),
       child: Column(
         children: [
           headerUi(context),
@@ -61,7 +61,8 @@ class Loginpage extends StatelessWidget {
           const Text(
             "خوش آمدید",
             style: TextStyle(
-                color: Colors.white, fontSize: 45,
+                color: Colors.white,
+                fontSize: 45,
                 fontFamily: 'samim',
                 fontWeight: FontWeight.bold),
           ),
@@ -72,17 +73,19 @@ class Loginpage extends StatelessWidget {
           const SizedBox(
             height: 30,
           ),
-          const TextFormFields(
+          TextFormFields(
             suffixIcon: Icons.person,
             hintText: 'نام کاربری',
+            controller: usernameController,
           ),
           const SizedBox(
             height: 15,
           ),
-          const TextFormFields(
+          TextFormFields(
             suffixIcon: Icons.lock,
             hintText: 'رمز عبور',
             passwordcheck: true,
+            controller: passwordController,
           ),
           Padding(
             padding: const EdgeInsets.fromLTRB(40, 0, 20, 0),
@@ -113,14 +116,7 @@ class Loginpage extends StatelessWidget {
         child: Column(
           children: [
             GradientButton(context, () {
-              Navigator.push(
-                context,
-                MaterialPageRoute(
-                  builder: (context) {
-                    return AfterLoginGoToThis();
-                  },
-                ),
-              );
+              loadData();
             }, "ورود"),
             Row(
               mainAxisSize: MainAxisSize.max,
@@ -158,5 +154,39 @@ class Loginpage extends StatelessWidget {
             )
           ],
         ));
+  }
+
+  loadData() async {
+    SharedPreferences prefs = await SharedPreferences.getInstance();
+    String? json = prefs.getString("userData");
+    prefs.setBool('user', true);
+    if (json != null) {
+      Map<String, dynamic> map = jsonDecode(json);
+      final user = User.fromJson(map);
+
+      if (usernameController.text == ('${user.username}') &&
+          passwordController.text == ('${user.password}')) {
+        Navigator.pushReplacement(
+            context,
+            MaterialPageRoute(
+                builder: (BuildContext context) => AfterLoginGoToThis()));
+      } else {
+        showDialog(
+          context: context,
+          builder: (BuildContext context) {
+            return MyAlrtDialog(
+                context, 'خطای ورود', 'نام کاربری یا رمز عبور اشتباه است');
+          },
+        );
+      }
+    } else {
+      showDialog(
+        context: context,
+        builder: (BuildContext context) {
+          return MyAlrtDialog(
+              context, 'خطای عضویت', 'شما هنوز عضو برنامه نشده اید');
+        },
+      );
+    }
   }
 }
